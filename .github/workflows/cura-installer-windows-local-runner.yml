@@ -1,5 +1,5 @@
-name: Fracktory Windows Local Installer
-run-name: 5.8.0 for Windows-${{ inputs.architecture }} by @${{ github.actor }}
+name: Fracktory Windows Installer Local Runner
+run-name: 5.7.2 for Windows-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
@@ -43,7 +43,7 @@ on:
       operating_system:
         description: 'OS'
         required: true
-        default: 'windows-2022'
+        default: 'Windows'
         type: string
 
       conan_internal:
@@ -65,6 +65,8 @@ env:
   STAGING: False
 
 jobs:
+  # cura-installer-create:
+  #   runs-on: ${{ inputs.operating_system }}
   cura-installer-create_locally:
     runs-on: [self-hosted, Windows]
 
@@ -84,34 +86,26 @@ jobs:
           ref: ${{ github.base_ref }}
 
       - name: Sync pip requirements
-        run: curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt
+        run: Invoke-WebRequest -URI https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt -OutFile requirements-runner.txt
         working-directory: .github\workflows
 
 
       - name: Setup Python and pip
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.7
+          python-version: 3.10.11
           cache: pip
           cache-dependency-path: .\.github\workflows\requirements-runner.txt
 
       - name: Install Python requirements and Create default Conan profile
         run: pip install -r .\.github\workflows\requirements-runner.txt
 
-      - name: Echo $Env:WIX 
-        run: |
-          echo $Env:WIX
-          cmake --version
-          python --version
-          conan --version
-          pip show sip
-
-      - name: Setup pipeline caches
-        run: |
-          New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.conan\downloads
+      # - name: Setup pipeline caches
+      #   run: |
+      #     New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.conan\downloads
 
       - name: Create default Conan profile
-        run: conan profile new default --detect
+        run: conan profile new default --detect --force
 
       - name: Get Conan configuration
         run: |
@@ -127,26 +121,32 @@ jobs:
           cd ..
           git clone https://github.com/FracktalWorks/CuraEngine.git
           cd CuraEngine
-          conan create . curaengine/5.8.0@FracktalWorks/stable --build=missing --update
+          git pull
+          conan create . curaengine/5.7.2@FracktalWorks/stable --build=missing --update
 
+      # - name: Cache Conan downloads
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: C:\Users\runneradmin\.conan\downloads
+      #     key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-conan-downloads-
 
-      - name: Cache Conan downloads
-        uses: actions/cache@v3
-        with:
-          path: C:\Users\runneradmin\.conan\downloads
-          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-conan-downloads-
+      - name: echo environment variables 
+        run: |
+          echo $env:GITHUB_PATH
+          echo $env:WIX
+
 
       - name: Create the Packages (Powershell)
         run: |
-          conan create . local/test --build=missing --update -c tools.build:skip_test=True
-          conan install cura/5.8.0@local/test  ${{ inputs.conan_args }} --require-override=curaengine/5.8.0@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
+          conan create . local/test --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -c tools.build:skip_test=True
+          conan install cura/5.7.2@local/test  ${{ inputs.conan_args }} --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
 
 
       - name: Set Environment variables for Cura (Powershell)
         run: |
-          echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\Program Files (x86)\WiX Toolset v3.14\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           .\cura_inst\Scripts\activate_github_actions_env.ps1
           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
 
@@ -174,8 +174,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path runner_scripts
           cd runner_scripts
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py
+          Invoke-WebRequest -URI https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py -OutFile cura_installer_filename.py
+          Invoke-WebRequest -URI https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py -OutFile summarize_used_dependencies.py
 
       - name: Output the name file name and extension
         id: filename
@@ -191,7 +191,7 @@ jobs:
         run: |
           $pfxPath = Join-Path -Path $env:RUNNER_TEMP -ChildPath "cert.pfx"; 
           $encodedBytes = [System.Convert]::FromBase64String($env:PFX_CONTENT); 
-          Set-Content $pfxPath -Value $encodedBytes -AsByteStream;
+          Set-Content $pfxPath -Value $encodedBytes;
           echo "PFX_PATH=$pfxPath" >> $env:GITHUB_OUTPUT;
 
       - name: Create the Windows msi installer (Powershell)
@@ -206,10 +206,10 @@ jobs:
       #     & "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe" sign /f $Env:PFX_PATH /p "$Env:WIN_CERT_INSTALLER_CER_PASS" /fd SHA256 /t http://timestamp.digicert.com "${{ inputs.installer_name }}.msi"
       #   working-directory: dist
 
-      - name: Create the Windows exe installer (Powershell)
-        run: |
-          python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{inputs.installer_name}}.exe"
-        working-directory: dist
+      # - name: Create the Windows exe installer (Powershell)
+      #   run: |
+      #     python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{inputs.installer_name}}.exe"
+      #   working-directory: dist
 
       # - name: Sign the Windows exe installer (Powershell)
       #   env:
@@ -235,13 +235,13 @@ jobs:
             dist/${{inputs.installer_name }}.msi
           retention-days: 5
 
-      - name: Upload the exe
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{inputs.installer_name}}-exe
-          path: |
-            dist/${{inputs.installer_name }}.exe
-          retention-days: 5
+      # - name: Upload the exe
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{inputs.installer_name}}-exe
+      #     path: |
+      #       dist/${{inputs.installer_name }}.exe
+      #     retention-days: 5
 
       # NOTE: The extension is .sh, since this isn't going to build-environment, so not on the Win build image.
       - name: Write the run info
