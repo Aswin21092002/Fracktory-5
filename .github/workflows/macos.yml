@@ -65,7 +65,7 @@ env:
 
 jobs:
   cura-installer-create:
-    runs-on: ${{ inputs.operating_system }}
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Cura repo
