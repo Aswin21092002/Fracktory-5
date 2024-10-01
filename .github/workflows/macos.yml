@@ -1,214 +1,271 @@
-name: Macos Installer
-run-name: ${{ inputs.cura_conan_version }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
+# name: Macos Installer
+# run-name: ${{ inputs.cura_conan_version }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
+
+# on:
+#   workflow_call:
+#     inputs:
+#       cura_conan_version:
+#         description: 'Cura Conan Version'
+#         default: 'cura/latest@ultimaker/testing'
+#         required: true
+#         type: string
+
+#       conan_args:
+#         description: 'Conan args: eq.: --require-override'
+#         default: ''
+#         required: false
+#         type: string
+
+#       enterprise:
+#         description: 'Build Cura as an Enterprise edition'
+#         default: false
+#         required: true
+#         type: boolean
+
+#       staging:
+#         description: 'Use staging API'
+#         default: false
+#         required: true
+#         type: boolean
+
+#       architecture:
+#         description: 'Architecture'
+#         required: true
+#         default: 'ARM64'
+#         type: string
+
+#       operating_system:
+#         description: 'OS'
+#         required: true
+#         default: 'self-hosted-ARM64'
+#         type: string
+
+#       conan_internal:
+#         required: false
+#         default: false
+#         type: boolean
+
+# permissions:
+#   contents: read
+
+# env:
+#   #CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_USER }}
+#   #CONAN_PASSWORD: ${{ secrets.CONAN_PASS }}
+#   CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}
+#   MAC_NOTARIZE_USER: ${{ secrets.MAC_NOTARIZE_USER }}
+#   MAC_NOTARIZE_PASS: ${{ secrets.MAC_NOTARIZE_PASS }}
+#   MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+#   MACOS_CERT_INSTALLER_P12: ${{ secrets.MACOS_CERT_INSTALLER_P12 }}
+#   MACOS_CERT_USER: ${{ secrets.MACOS_CERT_USER }}
+#   MACOS_CERT_PASSPHRASE: ${{ secrets.MACOS_CERT_PASSPHRASE }}
+#   CURA_CONAN_VERSION: ${{ inputs.cura_conan_version }}
+#   ENTERPRISE: ${{ inputs.enterprise }}
+#   STAGING: ${{ inputs.staging }}
+#   SENTRY_TOKEN: ${{ secrets.CURAENGINE_SENTRY_TOKEN }}
+
+# jobs:
+#   cura-installer-create:
+#     runs-on: ${{ inputs.operating_system }}
+
+#     steps:
+#       - name: Checkout repo
+#         uses: actions/checkout@v4
+#         if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+#         with:
+#           fetch-depth: 1
+#           ref: ${{ github.head_ref }}
+
+#       - name: Checkout repo PR
+#         uses: actions/checkout@v4
+#         if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+#         with:
+#           fetch-depth: 1
+#           ref: ${{ github.base_ref }}
+
+#       - name: Sync pip requirements
+#         run: curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt
+#         working-directory: .github/workflows
+
+#       - name: Setup Python and pip
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.11.7
+#           cache: pip
+#           cache-dependency-path: .github/workflows/requirements-runner.txt
+
+#       - name: Install Python requirements and Create default Conan profile
+#         run: pip install -r .github/workflows/requirements-runner.txt
+
+#       - name: Echo Environment Variables
+#         run: |
+#           echo $WIX
+#           cmake --version
+#           python --version
+#           conan --version
+#           pip show sip
+
+#       - name: Setup pipeline caches
+#         run: mkdir -p ~/.conan/downloads
+
+#       - name: Create default Conan profile
+#         run: conan profile new default --detect
+
+#       - name: Get Conan configuration
+#         run: |
+#           conan config install https://github.com/Ultimaker/conan-config.git
+#           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
+
+#       - name: Add Cura private Artifactory remote
+#         if: ${{ inputs.conan_internal }}
+#         run: conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/internal"
+
+#       - name: Clone CuraEngine from Fracktal Works repository
+#         run: |
+#           git clone https://github.com/FracktalWorks/CuraEngine.git
+#           cd CuraEngine
+#           conan create . curaengine/5.8.0@FracktalWorks/stable --build=missing --update
+
+#       - name: Cache Conan downloads
+#         uses: actions/cache@v3
+#         with:
+#           path: ~/.conan/downloads
+#           key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+#           restore-keys: |
+#             ${{ runner.os }}-conan-downloads-
+
+#       - name: Create the Packages (Bash)
+#         run: |
+#           conan create . local/test --build=missing --update -c tools.build:skip_test=True
+#           conan install cura/5.8.0@local/test ${{ inputs.conan_args }} --require-override=curaengine/5.8.0@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
+
+#       - name: Set Environment variables for Cura (Bash)
+#         run: |
+#           echo "$WIX/bin" >> $GITHUB_PATH
+#           source ./cura_inst/Scripts/activate_github_actions_env.sh
+#           source ./cura_inst/Scripts/activate_github_actions_version_env.sh
+
+#       - name: Create the Cura dist
+#         run: |
+#           pyinstaller ./cura_inst/Fracktory.spec
+
+#       - name: Get installer helper scripts
+#         run: |
+#           mkdir -p runner_scripts
+#           cd runner_scripts
+#           curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py
+#           curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py
+
+#       - name: Output the name file name and extension
+#         id: filename
+#         run: python runner_scripts/cura_installer_filename.py --os ${{ runner.os }} --arch ${{ inputs.architecture }} --enterprise ${{ inputs.enterprise }} --internal ${{ inputs.conan_internal }}
+
+#       - name: Summarize the used dependencies
+#         run: python runner_scripts/summarize_used_dependencies.py --installer_filename ${{ inputs.installer_name }}
+
+#       - name: Create PFX certificate from BASE64_PFX_CONTENT secret
+#         id: create-pfx
+#         env:
+#           PFX_CONTENT: ${{ secrets.WIN_CERT_INSTALLER_CER }}
+#         run: |
+#           pfxPath="${RUNNER_TEMP}/cert.pfx"
+#           encodedBytes=$(echo $PFX_CONTENT | base64 --decode)
+#           echo -n $encodedBytes > $pfxPath
+#           echo "PFX_PATH=$pfxPath" >> $GITHUB_OUTPUT
+
+#       - name: Create the macOS installer (Bash)
+#         run: |
+#           python ../cura_inst/packaging/macos/create_macos_installer.py ../cura_inst . "${{ inputs.installer_name }}.dmg" "${{ inputs.app_name }}"
+#         working-directory: dist
+
+#       - name: Create the macOS exe installer (Bash)
+#         run: |
+#           python ../cura_inst/packaging/NSIS/create_windows_installer.py ../cura_inst . "${{ inputs.installer_name }}.app"
+#         working-directory: dist
+
+#       - name: Upload the dmg
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: ${{ inputs.installer_name }}-dmg
+#           path: |
+#             dist/${{ inputs.installer_name }}.dmg
+#           retention-days: 5
+
+#       - name: Upload the app
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: ${{ inputs.installer_name }}-app
+#           path: |
+#             dist/${{ inputs.installer_name }}.app
+#           retention-days: 5
+
+#       - name: Write the run info
+#         shell: python
+#         run: |
+#           import os
+#           with open("run_info.sh", "w") as f:
+#             f.writelines(f'echo "CURA_VERSION_FULL={os.environ["CURA_VERSION_FULL"]}" >> $GITHUB_ENV\n')
+
+#       - name: Upload the run info
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: macos-run-info
+#           path: |
+#             run_info.sh
+#           retention-days: 5
+
+
+name: MacOS Installer
+run-name: ${{ inputs.cura_conan_version }} by @${{ github.actor }}
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       cura_conan_version:
         description: 'Cura Conan Version'
         default: 'cura/latest@ultimaker/testing'
         required: true
         type: string
-
       conan_args:
         description: 'Conan args: eq.: --require-override'
         default: ''
         required: false
         type: string
-
       enterprise:
         description: 'Build Cura as an Enterprise edition'
         default: false
         required: true
         type: boolean
-
       staging:
         description: 'Use staging API'
         default: false
         required: true
         type: boolean
-
       architecture:
         description: 'Architecture'
         required: true
         default: 'ARM64'
-        type: string
-
+        type: choice
+        options:
+          - X64
+          - ARM64
       operating_system:
         description: 'OS'
         required: true
         default: 'self-hosted-ARM64'
-        type: string
-
-      conan_internal:
-        required: false
-        default: false
-        type: boolean
-
-permissions:
-  contents: read
-
-env:
-  #CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_USER }}
-  #CONAN_PASSWORD: ${{ secrets.CONAN_PASS }}
-  CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}
-  MAC_NOTARIZE_USER: ${{ secrets.MAC_NOTARIZE_USER }}
-  MAC_NOTARIZE_PASS: ${{ secrets.MAC_NOTARIZE_PASS }}
-  MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
-  MACOS_CERT_INSTALLER_P12: ${{ secrets.MACOS_CERT_INSTALLER_P12 }}
-  MACOS_CERT_USER: ${{ secrets.MACOS_CERT_USER }}
-  MACOS_CERT_PASSPHRASE: ${{ secrets.MACOS_CERT_PASSPHRASE }}
-  CURA_CONAN_VERSION: ${{ inputs.cura_conan_version }}
-  ENTERPRISE: ${{ inputs.enterprise }}
-  STAGING: ${{ inputs.staging }}
-  SENTRY_TOKEN: ${{ secrets.CURAENGINE_SENTRY_TOKEN }}
+        type: choice
+        options:
+          - self-hosted-X64
+          - self-hosted-ARM64
+          - macos-12
 
 jobs:
-  cura-installer-create:
-    runs-on: ${{ inputs.operating_system }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-        with:
-          fetch-depth: 1
-          ref: ${{ github.head_ref }}
-
-      - name: Checkout repo PR
-        uses: actions/checkout@v4
-        if: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
-        with:
-          fetch-depth: 1
-          ref: ${{ github.base_ref }}
-
-      - name: Sync pip requirements
-        run: curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt
-        working-directory: .github/workflows
-
-      - name: Setup Python and pip
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.11.7
-          cache: pip
-          cache-dependency-path: .github/workflows/requirements-runner.txt
-
-      - name: Install Python requirements and Create default Conan profile
-        run: pip install -r .github/workflows/requirements-runner.txt
-
-      - name: Echo Environment Variables
-        run: |
-          echo $WIX
-          cmake --version
-          python --version
-          conan --version
-          pip show sip
-
-      - name: Setup pipeline caches
-        run: mkdir -p ~/.conan/downloads
-
-      - name: Create default Conan profile
-        run: conan profile new default --detect
-
-      - name: Get Conan configuration
-        run: |
-          conan config install https://github.com/Ultimaker/conan-config.git
-          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
-
-      - name: Add Cura private Artifactory remote
-        if: ${{ inputs.conan_internal }}
-        run: conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/internal"
-
-      - name: Clone CuraEngine from Fracktal Works repository
-        run: |
-          git clone https://github.com/FracktalWorks/CuraEngine.git
-          cd CuraEngine
-          conan create . curaengine/5.8.0@FracktalWorks/stable --build=missing --update
-
-      - name: Cache Conan downloads
-        uses: actions/cache@v3
-        with:
-          path: ~/.conan/downloads
-          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-conan-downloads-
-
-      - name: Create the Packages (Bash)
-        run: |
-          conan create . local/test --build=missing --update -c tools.build:skip_test=True
-          conan install cura/5.8.0@local/test ${{ inputs.conan_args }} --require-override=curaengine/5.8.0@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
-
-      - name: Set Environment variables for Cura (Bash)
-        run: |
-          echo "$WIX/bin" >> $GITHUB_PATH
-          source ./cura_inst/Scripts/activate_github_actions_env.sh
-          source ./cura_inst/Scripts/activate_github_actions_version_env.sh
-
-      - name: Create the Cura dist
-        run: |
-          pyinstaller ./cura_inst/Fracktory.spec
-
-      - name: Get installer helper scripts
-        run: |
-          mkdir -p runner_scripts
-          cd runner_scripts
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py
-
-      - name: Output the name file name and extension
-        id: filename
-        run: python runner_scripts/cura_installer_filename.py --os ${{ runner.os }} --arch ${{ inputs.architecture }} --enterprise ${{ inputs.enterprise }} --internal ${{ inputs.conan_internal }}
-
-      - name: Summarize the used dependencies
-        run: python runner_scripts/summarize_used_dependencies.py --installer_filename ${{ inputs.installer_name }}
-
-      - name: Create PFX certificate from BASE64_PFX_CONTENT secret
-        id: create-pfx
-        env:
-          PFX_CONTENT: ${{ secrets.WIN_CERT_INSTALLER_CER }}
-        run: |
-          pfxPath="${RUNNER_TEMP}/cert.pfx"
-          encodedBytes=$(echo $PFX_CONTENT | base64 --decode)
-          echo -n $encodedBytes > $pfxPath
-          echo "PFX_PATH=$pfxPath" >> $GITHUB_OUTPUT
-
-      - name: Create the macOS installer (Bash)
-        run: |
-          python ../cura_inst/packaging/macos/create_macos_installer.py ../cura_inst . "${{ inputs.installer_name }}.dmg" "${{ inputs.app_name }}"
-        working-directory: dist
-
-      - name: Create the macOS exe installer (Bash)
-        run: |
-          python ../cura_inst/packaging/NSIS/create_windows_installer.py ../cura_inst . "${{ inputs.installer_name }}.app"
-        working-directory: dist
-
-      - name: Upload the dmg
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ inputs.installer_name }}-dmg
-          path: |
-            dist/${{ inputs.installer_name }}.dmg
-          retention-days: 5
-
-      - name: Upload the app
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ inputs.installer_name }}-app
-          path: |
-            dist/${{ inputs.installer_name }}.app
-          retention-days: 5
-
-      - name: Write the run info
-        shell: python
-        run: |
-          import os
-          with open("run_info.sh", "w") as f:
-            f.writelines(f'echo "CURA_VERSION_FULL={os.environ["CURA_VERSION_FULL"]}" >> $GITHUB_ENV\n')
-
-      - name: Upload the run info
-        uses: actions/upload-artifact@v3
-        with:
-          name: macos-run-info
-          path: |
-            run_info.sh
-          retention-days: 5
+  macos-installer:
+    uses: ultimaker/cura-workflows/.github/workflows/cura-installer-macos.yml@main
+    with:
+      cura_conan_version: ${{ inputs.cura_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      enterprise: ${{ inputs.enterprise }}
+      staging: ${{ inputs.staging }}
+      architecture: ${{ inputs.architecture }}
+      operating_system: ${{ inputs.operating_system }}
+    secrets: inherit
