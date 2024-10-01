@@ -186,6 +186,9 @@ jobs:
           python ..\cura_inst\packaging\msi\create_windows_msi.py ..\cura_inst .\Fracktory "${{inputs.installer_name}}.msi" "${{ inputs.app_name }}"
         working-directory: dist
 
+
+         
+
       # - name: Sign the Windows msi installer (Powershell)
       #   env:
       #     PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
