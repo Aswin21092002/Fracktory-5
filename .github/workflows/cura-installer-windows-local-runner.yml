@@ -43,7 +43,7 @@ on:
       operating_system:
         description: 'OS'
         required: true
-        default: 'Windows-2022'
+        default: 'Windows'
         type: string
 
       conan_internal:
@@ -68,7 +68,7 @@ jobs:
   # cura-installer-create:
   #   runs-on: ${{ inputs.operating_system }}
   cura-installer-create_locally:
-    runs-on: [self-hosted, Windows,X64]
+    runs-on: [self-hosted, Windows]
 
     steps:
       - name: Checkout repo
@@ -85,8 +85,6 @@ jobs:
           fetch-depth: 1
           ref: ${{ github.base_ref }}
 
-      # run through powershell means its better always using Invoke
-      
       - name: Sync pip requirements
         run: Invoke-WebRequest -URI https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt -OutFile requirements-runner.txt
         working-directory: .github\workflows
@@ -95,29 +93,19 @@ jobs:
       - name: Setup Python and pip
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11.17
+          python-version: 3.10.11
           cache: pip
           cache-dependency-path: .\.github\workflows\requirements-runner.txt
 
       - name: Install Python requirements and Create default Conan profile
         run: pip install -r .\.github\workflows\requirements-runner.txt
 
-      # best to check the version
-      
-      - name: Echo $Env:WIX 
-        run: |
-          echo $Env:WIX
-          cmake --version
-          python --version
-          conan --version
-          pip show sip
-
-       - name: Setup pipeline caches
-         run: |
-           New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.conan\downloads
+      # - name: Setup pipeline caches
+      #   run: |
+      #     New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.conan\downloads
 
       - name: Create default Conan profile
-        run: conan profile new default --detect 
+        run: conan profile new default --detect --force
 
       - name: Get Conan configuration
         run: |
@@ -133,39 +121,35 @@ jobs:
           cd ..
           git clone https://github.com/FracktalWorks/CuraEngine.git
           cd CuraEngine
-          conan create . curaengine/5.8.0@FracktalWorks/stable --build=missing --update
+          git pull
+          conan create . curaengine/5.7.2@FracktalWorks/stable --build=missing --update
+
+      # - name: Cache Conan downloads
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: C:\Users\runneradmin\.conan\downloads
+      #     key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-conan-downloads-
+
+      - name: echo environment variables 
+        run: |
+          echo $env:GITHUB_PATH
+          echo $env:WIX
 
 
-      - name: Cache Conan downloads
-        uses: actions/cache@v3
-        with:
-          path: C:\Users\runneradmin\.conan\downloads
-          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-conan-downloads-
+      - name: Create the Packages (Powershell)
+        run: |
+          conan create . local/test --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -c tools.build:skip_test=True
+          conan install cura/5.7.2@local/test  ${{ inputs.conan_args }} --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
 
-      # - name: echo environment variables 
-      #   run: |
-      #     echo $env:GITHUB_PATH
-      #     echo $env:WIX
 
       - name: Set Environment variables for Cura (Powershell)
         run: |
-          echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "C:\Program Files (x86)\WiX Toolset v3.14\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           .\cura_inst\Scripts\activate_github_actions_env.ps1
           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
 
-
-
-      
-          
-
-      - name: Set Environment variables for Cura (Powershell)
-        run: |
-           echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-           .\cura_inst\Scripts\activate_github_actions_env.ps1
-           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
-           
       - name: Create the Cura dist
         run: |
           pyinstaller ./cura_inst/Fracktory.spec
