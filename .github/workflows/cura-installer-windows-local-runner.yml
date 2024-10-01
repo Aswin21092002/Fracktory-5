@@ -121,43 +121,26 @@ jobs:
           cd ..
           git clone https://github.com/FracktalWorks/CuraEngine.git
           cd CuraEngine
-          git pull
-          conan create . curaengine/5.7.2@FracktalWorks/stable --build=missing --update
-
-      # - name: Cache Conan downloads
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: C:\Users\runneradmin\.conan\downloads
-      #     key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-conan-downloads-
-
-      - name: echo environment variables 
-        run: |
-          echo $env:GITHUB_PATH
-          echo $env:WIX
-
-
-      - name: Install Conan 1.65.0
-        run: |
-          python -m pip install conan==1.65.0
-
+          conan create . curaengine/5.8.0@FracktalWorks/stable --build=missing --update
+      - name: Cache Conan downloads
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\runneradmin\.conan\downloads
+          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-conan-downloads-
       - name: Create the Packages (Powershell)
-        shell: pwsh
         run: |
-          conan create . local/test --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -c tools.build:skip_test=True
-          conan install cura/5.7.2@local/test ${{ inputs.conan_args }} --require-override=curaengine/5.7.2@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
-
+          conan create . local/test --build=missing --update -c tools.build:skip_test=True
+          conan install cura/5.8.0@local/test  ${{ inputs.conan_args }} --require-override=curaengine/5.8.0@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
       - name: Set Environment variables for Cura (Powershell)
         run: |
-          echo "C:\Program Files (x86)\WiX Toolset v3.14\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           .\cura_inst\Scripts\activate_github_actions_env.ps1
           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
-
       - name: Create the Cura dist
         run: |
           pyinstaller ./cura_inst/Fracktory.spec
-
       # - name: Setup Sentry CLI
       #   uses: mathieu-bour/setup-sentry-cli@v1
       #   with:
