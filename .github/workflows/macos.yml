@@ -48,20 +48,20 @@ on:
 permissions:
   contents: read
 
-env:
-  CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_USER }}
-  CONAN_PASSWORD: ${{ secrets.CONAN_PASS }}
-  CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}
-  MAC_NOTARIZE_USER: ${{ secrets.MAC_NOTARIZE_USER }}
-  MAC_NOTARIZE_PASS: ${{ secrets.MAC_NOTARIZE_PASS }}
-  MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
-  MACOS_CERT_INSTALLER_P12: ${{ secrets.MACOS_CERT_INSTALLER_P12 }}
-  MACOS_CERT_USER: ${{ secrets.MACOS_CERT_USER }}
-  MACOS_CERT_PASSPHRASE: ${{ secrets.MACOS_CERT_PASSPHRASE }}
-  CURA_CONAN_VERSION: ${{ inputs.cura_conan_version }}
-  ENTERPRISE: ${{ inputs.enterprise }}
-  STAGING: ${{ inputs.staging }}
-  SENTRY_TOKEN: ${{ secrets.CURAENGINE_SENTRY_TOKEN }}
+# env:
+#   CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_USER }}
+#   CONAN_PASSWORD: ${{ secrets.CONAN_PASS }}
+#   CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}
+#   MAC_NOTARIZE_USER: ${{ secrets.MAC_NOTARIZE_USER }}
+#   MAC_NOTARIZE_PASS: ${{ secrets.MAC_NOTARIZE_PASS }}
+#   MACOS_CERT_P12: ${{ secrets.MACOS_CERT_P12 }}
+#   MACOS_CERT_INSTALLER_P12: ${{ secrets.MACOS_CERT_INSTALLER_P12 }}
+#   MACOS_CERT_USER: ${{ secrets.MACOS_CERT_USER }}
+#   MACOS_CERT_PASSPHRASE: ${{ secrets.MACOS_CERT_PASSPHRASE }}
+#   CURA_CONAN_VERSION: ${{ inputs.cura_conan_version }}
+#   ENTERPRISE: ${{ inputs.enterprise }}
+#   STAGING: ${{ inputs.staging }}
+#   SENTRY_TOKEN: ${{ secrets.CURAENGINE_SENTRY_TOKEN }}
 
 jobs:
   cura-installer-create:
