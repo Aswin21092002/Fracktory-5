@@ -59,34 +59,13 @@ env:
   WIN_CERT_INSTALLER_CER: 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
 
 jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install Dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Build Application
-        run: |
-          # Command to build the application for macOS
-          # For example, replace the command with your actual build command
-          python setup.py build
-
-      - name: Package Application
-        run: |
-          # Command to create .dmg file for macOS
-          hdiutil create -volname "${{ inputs.app_name }}" -srcfolder ./dist -o "${{ inputs.installer_name }}.dmg"
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: "${{ inputs.installer_name }}.dmg"
-          path: "${{ inputs.installer_name }}.dmg"
+  macos-installer:
+    uses: ultimaker/cura-workflows/.github/workflows/cura-installer-macos.yml@main
+    with:
+      cura_conan_version: ${{ inputs.cura_conan_version }}
+      conan_args: ${{ inputs.conan_args }}
+      enterprise: ${{ inputs.enterprise }}
+      staging: ${{ inputs.staging }}
+      architecture: ${{ inputs.architecture }}
+      operating_system: ${{ inputs.operating_system }}
+    secrets: inherit
