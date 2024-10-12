@@ -61,33 +61,29 @@ env:
 jobs:
   build:
     runs-on: ${{ inputs.operating_system }}
-    strategy:
-      matrix:
-        architecture: [X64, ARM64]
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install dependencies
+      - name: Set Up Conan
         run: |
-          pip install -r requirements.txt
+          # Install Conan
+          pip install conan
+          # Configure Conan with provided arguments
+          conan config set ${{ inputs.conan_args }}
 
       - name: Build Application
         run: |
-          echo "Building ${inputs.app_name} for ${{ matrix.architecture }}..."
+          # Build commands using Conan and other tools
+          conan install . --build=missing
 
-      - name: Package Installer
+      - name: Create Installer
         run: |
-          echo "Packaging ${inputs.installer_name} for ${{ matrix.architecture }}..."
+          # Commands to package the application into .dmg or .pkg
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload Installer
+        uses: actions/upload-artifact@v2
         with:
-          name: ${inputs.installer_name}
-          path: path/to/installer/file
+          name: ${{ inputs.installer_name }}
+          path: path/to/installer
+
