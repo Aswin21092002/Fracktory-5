@@ -1,17 +1,23 @@
-name: Macos Installer
-run-name: ${{ inputs.cura_conan_version }} for Macos-${{ inputs.architecture }} by @${{ github.actor }}
+name: Fracktory macOS Installer
+run-name: 5.8.0 for macOS-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      cura_conan_version:
-        description: 'Cura Conan Version'
-        default: 'cura/latest@ultimaker/testing'
-        required: true
+      installer_name:
+        description: 'Name of the .dmg and .pkg'
+        default: 'Fracktory_setup'
+        required: false
+        type: string
+
+      app_name:
+        description: 'Name of the Application in the installer'
+        default: 'Fracktory'
+        required: false
         type: string
 
       conan_args:
-        description: 'Conan args: eq.: --require-override'
+        description: 'Conan args (e.g., --require-override)'
         default: ''
         required: false
         type: string
@@ -31,13 +37,13 @@ on:
       architecture:
         description: 'Architecture'
         required: true
-        default: 'ARM64'
+        default: 'X64'
         type: string
 
       operating_system:
         description: 'OS'
         required: true
-        default: 'self-hosted-ARM64'
+        default: 'macos-latest'
         type: string
 
       conan_internal:
