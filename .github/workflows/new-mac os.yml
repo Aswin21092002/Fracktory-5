@@ -103,48 +103,6 @@ jobs:
       - name: Add Conan Remote
         run: conan remote add cura https://artifactory.cura.com/conan --force
 
-      # Conan authentication
-      # - name: Add runner credentials to cura remote
-        # run: |
-          # conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
-
-      # Debugging Conan secrets
-      - name: Debug Conan secrets
-        run: |
-          echo "Conan User: ${{ secrets.CONAN_USER }}"
-          echo "Conan Pass: ${{ secrets.CONAN_PASS }}"
-          if [ -z "${{ secrets.CONAN_USER }}" ]; then
-            echo "Conan User is empty"
-            exit 1
-          fi
-          if [ -z "${{ secrets.CONAN_PASS }}" ]; then
-            echo "Conan Pass is empty"
-            exit 1
-          fi
-
-      # Install dependencies with Conan
-      - name: Install dependencies with Conan
-        run: |
-          conan install . --build=missing --update -if cura_inst \
-            -o cura:enterprise=${{ inputs.enterprise }} \
-            -o cura:staging=${{ inputs.staging }} \
-            -o cura:internal=${{ inputs.conan_internal }} \
-            -c tools.build:skip_test=True \
-            -s curaengine:build_type=RelWithDebInfo \
-            -s arcus:build_type=RelWithDebInfo \
-            -s clipper:build_type=RelWithDebInfo
-
-      # Upload the Package(s)
-      # - name: Upload the Package(s)
-      #   if: ${{ always() && ! inputs.conan_internal }}
-      #   run: |
-      #     if [ -n "$(conan search --raw "*" -r cura)" ]; then
-      #       conan upload "*" -r cura --all -c
-      #     else
-      #       echo "No packages found for upload"
-      #       exit 0
-      #     fi
-
       # Run Conan install
       - name: Install dependencies with Conan
         run: |
