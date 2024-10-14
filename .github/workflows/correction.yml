@@ -1,0 +1,63 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  cura-installer-create:
+    runs-on: macos-latest  # Specify macOS as the runner
+
+    steps:
+      - name: Checkout Cura repo
+        uses: actions/checkout@v4
+        with:
+          repository: Ultimaker/Cura
+
+      - name: Checkout Cura-workflows repo
+        uses: actions/checkout@v4
+        with:
+          repository: Ultimaker/Cura-workflows
+          path: Cura-workflows
+
+      - name: Setup Python and pip
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11.x
+          cache: pip
+          cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
+
+      - name: Install Python requirements
+        run: pip install -r Cura-workflows/.github/workflows/requirements-runner.txt
+
+      - name: Install Conan
+        run: pip install conan
+
+      - name: Add Conan Remote
+        run: conan remote add cura https://artifactory.cura.com/conan --force
+
+      - name: Add runner credentials to cura remote
+        run: |
+          conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
+
+      - name: Verify Conan credentials
+        run: |
+          conan user -r cura
+
+      - name: Install dependencies with Conan
+        run: |
+          conan install . --build=missing --update -if cura_inst \
+            -o cura:enterprise=${{ inputs.enterprise }} \
+            -o cura:staging=${{ inputs.staging }} \
+            -o cura:internal=${{ inputs.conan_internal }} \
+            -c tools.build:skip_test=True \
+            -s curaengine:build_type=RelWithDebInfo \
+            -s arcus:build_type=RelWithDebInfo \
+            -s clipper:build_type=RelWithDebInfo
+
+      - name: Upload the Package(s)
+        if: ${{ always() && ! inputs.conan_internal }}
+        run: |
+          conan upload "*" -r cura --all -c || echo "No packages found to upload."
