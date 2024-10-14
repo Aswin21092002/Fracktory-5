@@ -120,9 +120,7 @@ jobs:
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
      
-      # Setup Conan and caches
-      - name: Install Conan
-        run: pip install conan
+     
 
       - name: Add Conan Remote
         run: conan remote add cura https://artifactory.cura.com/conan --force
@@ -147,9 +145,10 @@ jobs:
           fi
 
       # Install dependencies with Conan
-      - name: Install dependencies with Conan
+            # Build Packages with Conan
+      - name: Build Package with Conan
         run: |
-          conan install . --build=missing --update -if cura_inst \
+          conan create . cura/1.0@ --build=missing -if cura_inst \
             -o cura:enterprise=${{ inputs.enterprise }} \
             -o cura:staging=${{ inputs.staging }} \
             -o cura:internal=${{ inputs.conan_internal }} \
@@ -161,7 +160,10 @@ jobs:
       # Upload the Package(s)
       - name: Upload the Package(s)
         if: ${{ always() && ! inputs.conan_internal }}
-        run: conan upload "*" -r cura --all -c
+        run: |
+          conan upload "cura/*" -r cura --all -c
+        continue-on-error: true
+
       # Run Conan install
       - name: Install dependencies with Conan
         run: |
