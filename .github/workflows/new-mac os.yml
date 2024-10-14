@@ -71,7 +71,7 @@ env:
 
 jobs:
   cura-installer-create:
-    runs-on: ${{ inputs.operating_system }}
+    runs-on: macos-latest  # Ensure this is set to macOS
 
     steps:
       - name: Checkout Cura repo
@@ -85,6 +85,7 @@ jobs:
           repository: Ultimaker/Cura-workflows
           path: Cura-workflows
 
+      # Setup Python
       - name: Setup Python and pip
         uses: actions/setup-python@v4
         with:
@@ -92,35 +93,12 @@ jobs:
           cache: pip
           cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Install Python requirements and Create default Conan profile
+      - name: Install Python requirements
         run: pip install -r Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Install Macos system requirements for building
-        working-directory: Cura-workflows/runner_scripts
-        run: |
-          chmod +x macos_setup.sh
-          ./macos_setup.sh
-          
-      # Set up Conan (if not already set up)
+      # Setup Conan and caches
       - name: Install Conan
-        run: |
-          pip install conan
-
-
-      - name: Setup pipeline caches
-        run: |
-          mkdir -p /Users/runner/.conan/downloads
-
-      - name: Create default Conan profile
-        run: conan profile new default --detect --force
-
-      - name: Get Conan configuration
-        run: |
-          conan config install https://github.com/Ultimaker/conan-config.git
-          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
-
-     
-     
+        run: pip install conan
 
       - name: Add Conan Remote
         run: conan remote add cura https://artifactory.cura.com/conan --force
@@ -145,10 +123,9 @@ jobs:
           fi
 
       # Install dependencies with Conan
-            # Build Packages with Conan
-      - name: Build Package with Conan
+      - name: Install dependencies with Conan
         run: |
-          conan create . cura/1.0@ --build=missing -if cura_inst \
+          conan install . --build=missing --update -if cura_inst \
             -o cura:enterprise=${{ inputs.enterprise }} \
             -o cura:staging=${{ inputs.staging }} \
             -o cura:internal=${{ inputs.conan_internal }} \
@@ -161,8 +138,12 @@ jobs:
       - name: Upload the Package(s)
         if: ${{ always() && ! inputs.conan_internal }}
         run: |
-          conan upload "cura/*" -r cura --all -c
-        continue-on-error: true
+          if [ -n "$(conan search --raw "*" -r cura)" ]; then
+            conan upload "*" -r cura --all -c
+          else
+            echo "No packages found for upload"
+            exit 0
+          fi
 
       # Run Conan install
       - name: Install dependencies with Conan
