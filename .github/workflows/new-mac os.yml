@@ -100,6 +100,12 @@ jobs:
         run: |
           chmod +x macos_setup.sh
           ./macos_setup.sh
+          
+      # Set up Conan (if not already set up)
+      - name: Install Conan
+        run: |
+          pip install conan
+
 
       - name: Setup pipeline caches
         run: |
@@ -113,15 +119,30 @@ jobs:
           conan config install https://github.com/Ultimaker/conan-config.git
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
 
+     
+      # Add runner credentials to cura remote
       - name: Add runner credentials to cura remote
-        run: conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
+        run: |
+          conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
 
-
+      # Optionally, add the cura-private Artifactory remote if internal usage
       - name: Add Cura private Artifactory remote
         if: ${{ inputs.conan_internal }}
         run: |
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/internal"
-          conan user -p ${{ secrets.CONAN_PASS }} -r cura-private ${{ secrets.CONAN_USER }}
+          conan user -p "${{ secrets.CONAN_PASS }}" -r cura-private "${{ secrets.CONAN_USER }}"
+
+      # Debugging step to confirm secrets are passed
+      - name: Debug secrets and inputs
+        run: |
+          echo "Conan User: ${{ secrets.CONAN_USER }}"
+          echo "Conan Pass: ${{ secrets.CONAN_PASS }}"
+          echo "Conan Internal: ${{ inputs.conan_internal }}"
+
+      # Run Conan install
+      - name: Install dependencies with Conan
+        run: |
+          conan install . --build=missing
 
       - name: Cache Conan downloads
         uses: actions/cache@v3
