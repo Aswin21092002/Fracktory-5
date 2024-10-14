@@ -104,9 +104,9 @@ jobs:
         run: conan remote add cura https://artifactory.cura.com/conan --force
 
       # Conan authentication
-      - name: Add runner credentials to cura remote
-        run: |
-          conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
+      # - name: Add runner credentials to cura remote
+        # run: |
+          # conan user -p "${{ secrets.CONAN_PASS }}" -r cura "${{ secrets.CONAN_USER }}"
 
       # Debugging Conan secrets
       - name: Debug Conan secrets
@@ -135,15 +135,15 @@ jobs:
             -s clipper:build_type=RelWithDebInfo
 
       # Upload the Package(s)
-      - name: Upload the Package(s)
-        if: ${{ always() && ! inputs.conan_internal }}
-        run: |
-          if [ -n "$(conan search --raw "*" -r cura)" ]; then
-            conan upload "*" -r cura --all -c
-          else
-            echo "No packages found for upload"
-            exit 0
-          fi
+      # - name: Upload the Package(s)
+      #   if: ${{ always() && ! inputs.conan_internal }}
+      #   run: |
+      #     if [ -n "$(conan search --raw "*" -r cura)" ]; then
+      #       conan upload "*" -r cura --all -c
+      #     else
+      #       echo "No packages found for upload"
+      #       exit 0
+      #     fi
 
       # Run Conan install
       - name: Install dependencies with Conan
