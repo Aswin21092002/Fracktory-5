@@ -71,7 +71,7 @@ env:
 
 jobs:
   cura-installer-create:
-    runs-on: macos-latest  # Ensure this is set to macOS
+    runs-on: ${{ inputs.operating_system }}
 
     steps:
       - name: Checkout Cura repo
@@ -85,7 +85,6 @@ jobs:
           repository: Ultimaker/Cura-workflows
           path: Cura-workflows
 
-      # Setup Python
       - name: Setup Python and pip
         uses: actions/setup-python@v4
         with:
@@ -93,21 +92,31 @@ jobs:
           cache: pip
           cache-dependency-path: Cura-workflows/.github/workflows/requirements-runner.txt
 
-      - name: Install Python requirements
+      - name: Install Python requirements and Create default Conan profile
         run: pip install -r Cura-workflows/.github/workflows/requirements-runner.txt
 
-      # Setup Conan and caches
-      - name: Install Conan
-        run: pip install conan
-
-      - name: Add Conan Remote
-        run: conan remote add cura https://artifactory.cura.com/conan --force
-
-      # Run Conan install
-      - name: Install dependencies with Conan
+      - name: Install Macos system requirements for building
+        working-directory: Cura-workflows/runner_scripts
         run: |
-          conan install . --build=missing
+          chmod +x macos_setup.sh
+          ./macos_setup.sh
+      - name: Setup pipeline caches
+        run: |
+          mkdir -p /Users/runner/.conan/downloads
+      - name: Create default Conan profile
+        run: conan profile new default --detect --force
 
+      - name: Get Conan configuration
+        run: |
+          conan config install https://github.com/Ultimaker/conan-config.git
+          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/${{ runner.os }}/${{ runner.arch }}"
+      
+      
+
+      - name: Add Cura private Artifactory remote
+        if: ${{ inputs.conan_internal }}
+        run: |
+          conan config install https://github.com/Ultimaker/conan-config.git -a "-b runner/internal"
       - name: Cache Conan downloads
         uses: actions/cache@v3
         with:
@@ -115,7 +124,6 @@ jobs:
           key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-conan-downloads-
-
       - name: Remove Macos keychain (Bash)
         run: security delete-keychain signing_temp.keychain || true
 
