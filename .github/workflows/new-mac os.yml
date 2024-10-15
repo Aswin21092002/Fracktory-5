@@ -150,15 +150,16 @@ jobs:
 
       - name: Create the Packages (macOS)
         run: |
-          # Debug: Print conan config
-          conan config get
+          # Make the script executable
+          chmod +x remove_sentry_option.sh
           
-          # Debug: Print current options
-          conan inspect curaengine/5.9.0-alpha.0+82a498@ultimaker/testing --raw options
+          # Run the script to remove enable_sentry options
+          ./remove_sentry_option.sh
           
-          # Attempt to unset the problematic option
-          conan config set general.default_options=enable_sentry=None
+          # Clear Conan cache
+          conan remove "*" -f
           
+          # Recreate Conan cache
           conan create . local/test --build=missing --update -c tools.build:skip_test=True
           
           conan install cura/5.8.0@local/test ${{ inputs.conan_args }} \
@@ -179,12 +180,14 @@ jobs:
             -o curaengine:enable_extensive_warnings=False \
             -o curaengine:enable_plugins=True \
             -o curaengine:enable_remote_plugins=True \
-            -o curaengine:with_cura_resources=True \
-            -o curaengine:enable_sentry=None
+            -o curaengine:with_cura_resources=True
           
-          # Debug: Print options after installation
+          # Print debug information
+          echo "Conan config:"
+          conan config get
+          echo "Curaengine options:"
           conan inspect curaengine/5.9.0-alpha.0+82a498@ultimaker/testing --raw options
-
+        
       - name: Set Environment variables for Cura
         run: |
           echo "/usr/local/bin" >> $GITHUB_PATH
