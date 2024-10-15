@@ -151,8 +151,7 @@ jobs:
       - name: Create the Packages (macOS)
         run: |
           conan create . local/test --build=missing --update -c tools.build:skip_test=True
-          conan install cura/5.8.0@local/test ${{ inputs.conan_args }} --require-override=curaengine/5.8.0@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
-
+          conan install cura/5.8.0@local/test ${{ inputs.conan_args }} --require-override=curaengine/5.9.0-alpha.0+82a498@ultimaker/testing --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
 
 
       - name: Set Environment variables for Cura
