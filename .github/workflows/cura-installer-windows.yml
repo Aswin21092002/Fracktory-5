@@ -144,9 +144,8 @@ jobs:
       - name: Get installer helper scripts
         run: |
           New-Item -ItemType Directory -Force -Path runner_scripts
-          cd runner_scripts
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py
-          curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py" -OutFile "runner_scripts/cura_installer_filename.py"
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py" -OutFile "runner_scripts/summarize_used_dependencies.py"
 
       - name: Output the name file name and extension
         id: filename
