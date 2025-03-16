@@ -141,18 +141,18 @@ jobs:
         run: |
           pyinstaller ./cura_inst/Fracktory.spec
 
-      - name: Get installer helper scripts
-        run: |
-          New-Item -ItemType Directory -Force -Path runner_scripts
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py" -OutFile "runner_scripts/cura_installer_filename.py"
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py" -OutFile "runner_scripts/summarize_used_dependencies.py"
+      # - name: Get installer helper scripts
+      #   run: |
+      #     New-Item -ItemType Directory -Force -Path runner_scripts
+      #     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/cura_installer_filename.py" -OutFile "runner_scripts/cura_installer_filename.py"
+      #     Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/summarize_used_dependencies.py" -OutFile "runner_scripts/summarize_used_dependencies.py"
 
-      - name: Output the name file name and extension
-        id: filename
-        run: python runner_scripts/cura_installer_filename.py --os ${{ runner.os }} --arch ${{ inputs.architecture }} --enterprise ${{ inputs.enterprise }} --internal ${{ inputs.conan_internal }}
+      # - name: Output the name file name and extension
+      #   id: filename
+      #   run: python runner_scripts/cura_installer_filename.py --os ${{ runner.os }} --arch ${{ inputs.architecture }} --enterprise ${{ inputs.enterprise }} --internal ${{ inputs.conan_internal }}
 
-      - name: Summarize the used dependencies
-        run: python runner_scripts/summarize_used_dependencies.py --installer_filename ${{ inputs.installer_name }}
+      # - name: Summarize the used dependencies
+      #   run: python runner_scripts/summarize_used_dependencies.py --installer_filename ${{ inputs.installer_name }}
 
       - name: Create PFX certificate from BASE64_PFX_CONTENT secret
         id: create-pfx
