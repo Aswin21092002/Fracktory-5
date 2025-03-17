@@ -147,13 +147,7 @@ jobs:
           git pull origin $default_branch
 
       
-      - name: Verify File Exists
-        run: |
-          if (-Not (Test-Path "cura_inst/packaging/msi/create_windows_msi.py")) {
-            Write-Error "ERROR: create_windows_msi.py not found!"
-            exit 1
-          }
-        shell: powershell
+     
       
       - name: Create Windows MSI Installer
         run: |
