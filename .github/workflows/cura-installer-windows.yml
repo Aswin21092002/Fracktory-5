@@ -138,15 +138,15 @@ jobs:
         run: |
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Aswin21092002/cura-workflows/main/runner_scripts/prepare_installer.py" -OutFile "runner_scripts/prepare_installer.py"
 
-      - name: Generate Installer File Name
-        id: prepare-installer
-        shell: powershell
-        run: |
-          $args = ""
-          if ("${{ inputs.enterprise }}" -eq "true") { $args += " --enterprise" }
-          if ("${{ inputs.conan_internal }}" -eq "true") { $args += " --internal" }
-          $installer_name = python runner_scripts/prepare_installer.py --os Windows --architecture X64 $args
-          echo "INSTALLER_NAME=$installer_name" | Out-File -FilePath $env:GITHUB_ENV -Append
+      # - name: Generate Installer File Name
+      #   id: prepare-installer
+      #   shell: powershell
+      #   run: |
+      #     $args = ""
+      #     if ("${{ inputs.enterprise }}" -eq "true") { $args += " --enterprise" }
+      #     if ("${{ inputs.conan_internal }}" -eq "true") { $args += " --internal" }
+      #     $installer_name = python runner_scripts/prepare_installer.py --os Windows --architecture X64 $args
+      #     echo "INSTALLER_NAME=$installer_name" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       
 
