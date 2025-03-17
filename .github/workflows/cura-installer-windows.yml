@@ -123,11 +123,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-conan-downloads-
 
-      - name: Set Environment variables for Cura (Powershell)
-        run: |
-          echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          .\cura_inst\Scripts\activate_github_actions_env.ps1
-          .\cura_inst\Scripts\activate_github_actions_version_env.ps1
+      # - name: Set Environment variables for Cura (Powershell)
+      #   run: |
+      #     echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      #     .\cura_inst\Scripts\activate_github_actions_env.ps1
+      #     .\cura_inst\Scripts\activate_github_actions_version_env.ps1
 
       - name: Create necessary directories
         run: |
