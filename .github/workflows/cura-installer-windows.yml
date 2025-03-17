@@ -141,8 +141,7 @@ jobs:
         run: |
           pyinstaller ./cura_inst/Fracktory.spec
 
-      - name: Get Installer Helper Scripts
-        shell: pwsh
+      - name: Get installer helper scripts
         run: |
           New-Item -ItemType Directory -Force -Path runner_scripts
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/prepare_installer.py" -OutFile "runner_scripts/prepare_installer.py"
