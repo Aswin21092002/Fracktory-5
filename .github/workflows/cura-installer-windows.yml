@@ -165,14 +165,14 @@ jobs:
         working-directory: dist
 
       - name: Upload the MSI installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.installer_name }}-msi
           path: dist/${{ inputs.installer_name }}.msi
           retention-days: 5
       
       - name: Upload the EXE installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.installer_name }}-exe
           path: dist/${{ inputs.installer_name }}.exe
@@ -186,7 +186,7 @@ jobs:
               f.writelines(f'echo "CURA_VERSION_FULL={os.environ.get("CURA_VERSION_FULL", "UNKNOWN")}" >> $GITHUB_ENV\n')
       
       - name: Upload the run info
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-run-info
           path: run_info.sh
