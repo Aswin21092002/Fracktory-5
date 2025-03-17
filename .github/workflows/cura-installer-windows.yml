@@ -141,11 +141,10 @@ jobs:
      
       
 
-      - name: Ensure Clean Checkout
+      - name: Pull the latest code from the correct branch
         run: |
-          git reset --hard
-          git clean -fdx
-          git pull origin $(git remote show origin | awk '/HEAD branch/ {print $NF}')
+          $default_branch = git remote show origin | Select-String "HEAD branch" | ForEach-Object { ($_ -split " ")[-1] }
+          git pull origin $default_branch
 
       
       - name: Verify File Exists
