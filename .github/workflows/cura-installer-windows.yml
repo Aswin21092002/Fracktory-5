@@ -99,12 +99,12 @@ jobs:
           conan config install ./conan-config
           conan remote remove cura-private
 
-      # - name: Check Visual Studio Version
-      #   run: |
-      #     $vs_version = (Get-Command "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" | Select-Object Version).Version
-      #     if ($vs_version -ne "17.9.5") { exit 1 }
-      #     echo "Visual Studio version is $vs_version"
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || echo "No requirements.txt found, skipping."
 
+          
       - name: Clone and setup CuraEngine
         run: |
           git clone https://github.com/FracktalWorks/CuraEngine.git
@@ -146,51 +146,51 @@ jobs:
           New-Item -ItemType Directory -Force -Path runner_scripts
           Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/runner_scripts/prepare_installer.py" -OutFile "runner_scripts/prepare_installer.py"
 
-      - name: Output the installer file name and extension
-        id: filename
-        run: python runner_scripts/prepare_installer.py --os ${{ runner.os }} --arch ${{ inputs.architecture }} --enterprise ${{ inputs.enterprise }} --internal ${{ inputs.conan_internal }}
-
-     
-      
-
-      - name: Create the Windows MSI installer (Powershell)
+      - name: Generate Installer File Name
+        id: prepare-installer
         run: |
-          python ..\cura_inst\packaging\msi\create_windows_msi.py ../cura_inst ./Fracktory "${{ inputs.installer_name }}.msi" "${{ inputs.app_name }}"
+          $args = ""
+          if ("${{ inputs.enterprise }}" -eq "true") { $args += " --enterprise" }
+          if ("${{ inputs.conan_internal }}" -eq "true") { $args += " --internal" }
+          $installer_name = python runner_scripts/prepare_installer.py --os ${{ runner.os }} --architecture ${{ inputs.architecture }} $args
+          echo "INSTALLER_NAME=$installer_name" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Create Windows MSI Installer (Powershell)
+        run: |
+          python ..\cura_inst\packaging\msi\create_windows_msi.py ../cura_inst ./Fracktory "${{ env.INSTALLER_NAME }}.msi" "${{ inputs.app_name }}"
         working-directory: dist
 
-      - name: Create the Windows EXE installer (Powershell)
+      - name: Create Windows EXE Installer (Powershell)
         run: |
-          python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{ inputs.installer_name }}.exe"
+          python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{ env.INSTALLER_NAME }}.exe"
         working-directory: dist
 
-      - name: Upload the MSI installer
+      - name: Upload MSI Installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.installer_name }}-msi
-          path: dist/${{ inputs.installer_name }}.msi
+          name: ${{ env.INSTALLER_NAME }}-msi
+          path: dist/${{ env.INSTALLER_NAME }}.msi
           retention-days: 5
-      
-      - name: Upload the EXE installer
+
+      - name: Upload EXE Installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.installer_name }}-exe
-          path: dist/${{ inputs.installer_name }}.exe
+          name: ${{ env.INSTALLER_NAME }}-exe
+          path: dist/${{ env.INSTALLER_NAME }}.exe
           retention-days: 5
-      
-      - name: Write the run info
+
+      - name: Write Run Info
         shell: python
         run: |
           import os
           with open("run_info.sh", "w") as f:
-              f.writelines(f'echo "CURA_VERSION_FULL={os.environ.get("CURA_VERSION_FULL", "UNKNOWN")}" >> $GITHUB_ENV\n')
-      
-      - name: Upload the run info
+              f.write(f'echo "CURA_VERSION_FULL={os.environ.get("CURA_VERSION_FULL", "UNKNOWN")}" >> $GITHUB_ENV\n')
+
+      - name: Upload Run Info
         uses: actions/upload-artifact@v4
         with:
           name: windows-run-info
           path: run_info.sh
           retention-days: 5
-
-
       
           
