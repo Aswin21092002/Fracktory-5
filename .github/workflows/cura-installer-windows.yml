@@ -148,8 +148,7 @@ jobs:
           $installer_name = python runner_scripts/prepare_installer.py --os ${{ runner.os }} --architecture ${{ inputs.architecture }} $args
           echo "INSTALLER_NAME=$installer_name" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Debug Installer Name
-        run: echo "Installer Name: ${{ env.INSTALLER_NAME }}"
+      
 
       - name: Create Windows MSI Installer (Powershell)
         run: |
