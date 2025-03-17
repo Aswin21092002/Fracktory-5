@@ -149,42 +149,63 @@ jobs:
       
      
       
-      - name: Create Windows MSI Installer
+      - name: Create the Windows exe installer (Powershell)
         run: |
-          python cura_inst/packaging/msi/create_windows_msi.py cura_inst ./Fracktory "${{ env.INSTALLER_NAME }}.msi" "${{ inputs.app_name }}"
-        working-directory: ${{ github.workspace }}
-
-      - name: Create Windows EXE Installer (Powershell)
-        run: |
-          python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{ env.INSTALLER_NAME }}.exe"
+          $pydir = type ../pydir.txt
+          $env:PATH += ";$pydir;$pydir/Scripts"
+          python ..\cura_inst\packaging\NSIS\create_windows_installer.py --source_path ../cura_inst --dist_path . --filename "${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}.exe" --version "${{ steps.prepare-distribution.outputs.CURA_VERSION_FULL }}"
         working-directory: dist
-
-      - name: Upload MSI Installer
+      
+      - name: Upload the installer exe
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.INSTALLER_NAME }}-msi
-          path: dist/${{ env.INSTALLER_NAME }}.msi
+          name: ${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}-exe
+          path: dist/${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}.exe
           retention-days: 5
-
-      - name: Upload EXE Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.INSTALLER_NAME }}-exe
-          path: dist/${{ env.INSTALLER_NAME }}.exe
-          retention-days: 5
-
-      - name: Write Run Info
-        shell: python
+      
+      - name: Create the Windows msi installer (Powershell)
         run: |
-          import os
-          with open("run_info.sh", "w") as f:
-              f.write(f'echo "CURA_VERSION_FULL={os.environ.get("CURA_VERSION_FULL", "UNKNOWN")}" >> $GITHUB_ENV\n')
-
-      - name: Upload Run Info
+          $pydir = type ../pydir.txt
+          $env:PATH += ";$pydir;$pydir/Scripts"
+          python ..\cura_inst\packaging\msi\create_windows_msi.py --source_path ..\cura_inst --dist_path .\UltiMaker-Cura --filename "${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}.msi" --name "${{ steps.prepare-distribution.outputs.CURA_APP_NAME }}" --version "${{ steps.prepare-distribution.outputs.CURA_VERSION_FULL }}"
+        working-directory: dist
+      
+      - name: Upload the installer msi
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: windows-run-info
-          path: run_info.sh
+          name: ${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}-msi
+          path: dist/${{ steps.prepare-distribution.outputs.INSTALLER_FILENAME }}.msi
           retention-days: 5
+      
+      - name: Upload the application exe
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltiMaker-Cura.exe
+          path: dist/UltiMaker-Cura/UltiMaker-Cura.exe
+          retention-days: 5
+      
+      - name: Upload the engine exe
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: CuraEngine.exe
+          path: dist/UltiMaker-Cura/CuraEngine.exe
+          retention-days: 5
+      
+      - name: Upload the built Package(s)
+        if: ${{ always() }}
+        uses: ultimaker/cura-workflows/.github/actions/upload-conan-package@main
+        continue-on-error: true
+      
+      - name: Clean local cache
+        if: ${{ always() && startsWith(inputs.operating_system, 'self-hosted') }}
+        run: |
+          $pydir = type pydir.txt
+          $env:PATH += ";$pydir;$pydir/Scripts"
+          conan remove '*' --lru=1w -c
+
       
           
