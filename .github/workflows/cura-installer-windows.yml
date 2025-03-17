@@ -145,7 +145,8 @@ jobs:
         run: |
           git reset --hard
           git clean -fdx
-          git pull origin main
+          git pull origin $(git remote show origin | awk '/HEAD branch/ {print $NF}')
+
       
       - name: Verify File Exists
         run: |
