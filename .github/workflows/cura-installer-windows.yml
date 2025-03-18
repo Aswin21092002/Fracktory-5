@@ -139,11 +139,7 @@ jobs:
 
      
 
-      - name: Install Dependencies
-        run: |
-          cura_inst\Scripts\activate
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+      
 
       - name: Fix CFFI Version Mismatch
         run: |
