@@ -70,31 +70,7 @@ env:
   ENTERPRISE: False
   STAGING: False
 
-name: Build Cura Windows Installer
 
-on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Cura Version'
-        required: true
-      architecture:
-        description: 'Target Architecture'
-        required: true
-      installer_name:
-        description: 'Installer Name'
-        required: true
-      app_name:
-        description: 'Application Name'
-        required: true
-      enterprise:
-        description: 'Enterprise Build'
-        required: false
-        default: 'False'
-      conan_internal:
-        description: 'Internal Conan Option'
-        required: false
-        default: 'False'
 
 jobs:
   cura-installer-create_locally:
