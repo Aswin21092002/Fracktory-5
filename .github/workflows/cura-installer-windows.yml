@@ -77,37 +77,41 @@ jobs:
     runs-on: [self-hosted, Windows]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           ref: ${{ github.head_ref }}
 
-      - name: Setup Python
+      - name: Setup Python and pip
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
           cache: pip
 
-      - name: Install dependencies
+      - name: Install Conan and dependencies
         run: |
           pip install conan==1.65.0
           conan config install https://github.com/FracktalWorks/conan-config.git
           conan profile new default --detect --force
-
+          git clone https://github.com/ultimaker/conan-config.git
+          cd conan-config
+          git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
+          cd ..
+          conan config install ./conan-config
+          conan remote remove cura-private
+          
       - name: Clone and setup CuraEngine
         run: |
           git clone https://github.com/FracktalWorks/CuraEngine.git
           cd CuraEngine
           conan remove --locks
           conan create . curaengine/5.9.1@FracktalWorks/stable --build=missing --update
-
       - name: Clone and setup Fracktory-5
         run: |
           git clone https://github.com/FracktalWorks/Fracktory-5.git
           cd Fracktory-5
           conan install . --build=missing --update --require-override=curaengine/5.9.1@FracktalWorks/stable -o cura:devtools=True -g VirtualPythonEnv
-
       - name: Cache Conan downloads
         uses: actions/cache@v3
         with:
