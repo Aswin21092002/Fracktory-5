@@ -73,109 +73,17 @@ env:
 jobs:
   cura-installer-create_locally:
     runs-on: [self-hosted, Windows]
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Run Cura Installer Workflow
+        uses: ultimaker/cura-workflows/.github/workflows/cura-installer-windows.yml@main
         with:
-          fetch-depth: 1
-          ref: ${{ github.head_ref }}
-
-      - name: Setup Python and pip
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.12
-          cache: pip
-
-      - name: Install Conan and dependencies
-        run: |
-          pip install conan==1.65.0
-          conan config install https://github.com/FracktalWorks/conan-config.git
-          conan profile new default --detect --force
-          git clone https://github.com/ultimaker/conan-config.git
-          cd conan-config
-          git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
-          cd ..
-          conan config install ./conan-config
-          conan remote remove cura-private
-
-
-
-          
-      - name: Clone and setup CuraEngine
-        run: |
-          git clone https://github.com/FracktalWorks/CuraEngine.git
-          cd CuraEngine
-          conan remove --locks
-          conan create . curaengine/5.9.1@FracktalWorks/stable --build=missing --update
-
-      - name: Clone and setup Fracktory-5
-        run: |
-          git clone https://github.com/FracktalWorks/Fracktory-5.git
-          cd Fracktory-5
-          conan install . --build=missing --update --require-override=curaengine/5.9.1@FracktalWorks/stable -o cura:devtools=True -g VirtualPythonEnv
-
-      - name: Cache Conan downloads
-        uses: actions/cache@v3
-        with:
-          path: C:\Users\runneradmin\.conan\downloads
-          key: ${{ runner.os }}-conan-downloads-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-conan-downloads-
-
-      # - name: Set Environment variables for Cura (Powershell)
-      #   run: |
-      #     echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      #     .\cura_inst\Scripts\activate_github_actions_env.ps1
-      #     .\cura_inst\Scripts\activate_github_actions_version_env.ps1
-
-      - name: Create necessary directories
-        run: |
-          New-Item -ItemType Directory -Force -Path runner_scripts
-          New-Item -ItemType Directory -Force -Path dist
-
-      - name: Get installer helper script
-        run: |
-          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/Aswin21092002/cura-workflows/main/runner_scripts/prepare_installer.py" -OutFile "runner_scripts/prepare_installer.py"
-
-     
-      
-
-      - name: Pull the latest code from the correct branch
-        run: |
-          $default_branch = git remote show origin | Select-String "HEAD branch" | ForEach-Object { ($_ -split " ")[-1] }
-          git pull origin $default_branch
-
-      
-     
-      
-      - name: Install Dependencies
-        run: |
-          pip install pyinstaller
-          pip install -r requirements.txt  # Install other project dependencies if needed
-
-      - name: Create EXE using PyInstaller
-        run: |
-          pyinstaller --onefile --noconsole main.py
-        working-directory: src  # Change this to your source directory if different
-
-      - name: Install NSIS for Windows Installer
-        run: |
-          choco install nsis -y  # Install NSIS via Chocolatey
-        shell: powershell
-
-      - name: Create NSIS Installer
-        run: |
-          makensis installer.nsi  # This script will generate an EXE installer
-        working-directory: nsis  # Change this to your NSIS script directory if different
-
-      - name: Upload the EXE Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyApp-Installer
-          path: nsis/MyApp-Installer.exe
-          retention-days: 5
-
-
-      
-          
+          cura_conan_version: ${{ inputs.cura_conan_version }}
+          conan_args: ${{ inputs.conan_args }}
+          enterprise: ${{ inputs.enterprise }}
+          staging: ${{ inputs.staging }}
+          architecture: ${{ inputs.architecture }}
+          operating_system: ${{ inputs.operating_system }}
+          secrets: inherit
