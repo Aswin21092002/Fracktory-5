@@ -131,10 +131,52 @@ jobs:
           echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           .\cura_inst\Scripts\activate_github_actions_env.ps1
           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
-      - name: Create the Fracktory dist
-        run: |
-          pyinstaller --noconfirm --clean ./cura_inst/Fracktory.spec
 
+     
+
+      - name: Install Dependencies
+        run: |
+          cura_inst\Scripts\activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Fix CFFI Version Mismatch
+        run: |
+          cura_inst\Scripts\activate
+          pip uninstall -y cffi
+          Remove-Item -Recurse -Force $env:GITHUB_WORKSPACE\cura_inst\Lib\site-packages\cffi -ErrorAction Ignore
+          Remove-Item -Recurse -Force $env:APPDATA\Python\Python312\site-packages\_cffi_backend.cp312-win_amd64.pyd -ErrorAction Ignore
+          pip install --force-reinstall --no-cache-dir cffi==1.17.1
+
+      - name: Verify CFFI Installation
+        run: |
+          cura_inst\Scripts\activate
+          python -c "import cffi; print('CFFI Version:', cffi.__version__)"
+          python -c "import _cffi_backend; print('CFFI Backend Version:', _cffi_backend.__version__)"
+
+      - name: Clean Previous Builds
+        run: |
+          cura_inst\Scripts\activate
+          rmdir /s /q dist
+          rmdir /s /q build
+
+      - name: Create the Cura Distribution
+        run: |
+          cura_inst\Scripts\activate
+          pyinstaller --clean --noconfirm ./cura_inst/Fracktory.spec
+
+      - name: Package Windows Installer
+        run: |
+          cura_inst\Scripts\activate
+          python ..\cura_inst\packaging\NSIS\create_windows_installer.py --source_path ../cura_inst --dist_path . --filename "${{ github.run_id }}_Fracktory.exe" --version "1.0.0"
+        working-directory: dist
+
+      - name: Upload Installer Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fracktory-Installer
+          path: dist/*.exe
+          retention-days: 7
       - name: Get installer helper scripts
         run: |
           New-Item -ItemType Directory -Force -Path runner_scripts
