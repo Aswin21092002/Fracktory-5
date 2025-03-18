@@ -134,7 +134,7 @@ jobs:
       - name: Create Cura Distribution
         run: |
           pyinstaller ./cura_inst/Fracktory.spec
-
+      
       - name: Get Installer Helper Scripts
         run: |
           New-Item -ItemType Directory -Force -Path runner_scripts
