@@ -89,24 +89,9 @@ jobs:
           ref: ${{ github.base_ref }}
   
 
-      - name: Install Conan and dependencies
-        run: |
-          python -m pip install --upgrade pip setuptools wheel
-          pip install conan==1.65.0
-          conan config install https://github.com/FracktalWorks/conan-config.git
-          conan profile new default --detect --force
-          git clone https://github.com/ultimaker/conan-config.git
-          cd conan-config
-          git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
-          cd ..
-          conan config install ./conan-config
-          conan remote remove cura-private
-          
       
-      - name: Sync pip requirements
-        run: curl -O https://raw.githubusercontent.com/Ultimaker/cura-workflows/main/.github/workflows/requirements-runner.txt
-        working-directory: .github\workflows
-
+      
+      
 
       - name: Setup Python and pip
         uses: actions/setup-python@v4
@@ -129,6 +114,20 @@ jobs:
       - name: Setup pipeline caches
         run: |
           New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.conan\downloads
+
+      - name: Install Conan and dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install conan==1.65.0
+          conan config install https://github.com/FracktalWorks/conan-config.git
+          conan profile new default --detect --force
+          git clone https://github.com/ultimaker/conan-config.git
+          cd conan-config
+          git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
+          cd ..
+          conan config install ./conan-config
+          conan remote remove cura-private
+          
 
       - name: Create default Conan profile
         run: conan profile detect
