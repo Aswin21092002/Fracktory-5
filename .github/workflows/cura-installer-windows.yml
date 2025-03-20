@@ -129,9 +129,7 @@ jobs:
           conan remote remove cura-private
           
 
-      - name: Create default Conan profile
-        run: conan profile detect
-
+     
       
       - name: Clone and setup CuraEngine
         run: |
