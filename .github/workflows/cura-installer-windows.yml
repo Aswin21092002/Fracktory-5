@@ -136,7 +136,9 @@ jobs:
     
       - name: Create the Cura dist
         run: |
+          cura_inst\Scripts\activate
           pyinstaller ./cura_inst/Fracktory.spec
+
 
       - name: Package Windows Installer
         run: |
