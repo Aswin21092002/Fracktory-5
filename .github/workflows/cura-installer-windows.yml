@@ -98,12 +98,7 @@ jobs:
           cd ..
           conan config install ./conan-config
           conan remote remove cura-private
-      # - name: Check Visual Studio Version
-      #   run: |
-      #     $vs_version = (Get-Command "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.exe" | Select-Object Version).Version
-      #     if ($vs_version -ne "17.9.5") { exit 1 }
-      #     echo "Visual Studio version is $vs_version"
-
+          
       - name: Clone and setup CuraEngine
         run: |
           git clone https://github.com/FracktalWorks/CuraEngine.git
@@ -131,28 +126,9 @@ jobs:
           echo "${Env:WIX}\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
           .\cura_inst\Scripts\activate_github_actions_env.ps1
           .\cura_inst\Scripts\activate_github_actions_version_env.ps1
-
-      - name: Create Virtual Environment
+      - name: Create the Cura dist
         run: |
-          python -m venv cura_inst
-          echo "PYTHONHOME is not set. Skipping..." > cura_inst\Scripts\Activate.ps1
-
-     
-
-      
-
-     
-
-      - name: Clean Previous Builds
-        run: |
-          cura_inst\Scripts\activate
-          rmdir /s /q dist
-          rmdir /s /q build
-
-      - name: Create the Cura Distribution
-        run: |
-          cura_inst\Scripts\activate
-          pyinstaller --clean --noconfirm ./cura_inst/Fracktory.spec
+          pyinstaller ./cura_inst/Fracktory.spec
 
       - name: Package Windows Installer
         run: |
