@@ -219,8 +219,11 @@ jobs:
 
       - name: Build MSI Installer
         run: |
+          $env:WIX_PATH = "C:\Program Files (x86)\WiX Toolset v3.14\bin"
+          $env:Path += ";$env:WIX_PATH"
           python cura_inst\packaging\msi\create_windows_msi.py cura_inst dist\Fracktory "Fracktory.msi" "Fracktory"
         working-directory: ${{ github.workspace }}
+
 
       # - name: Build EXE Installer
       #   run: |
