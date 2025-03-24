@@ -207,15 +207,26 @@ jobs:
           echo "PFX_PATH=$pfxPath" >> $env:GITHUB_OUTPUT
 
 
-      - name: Create the Windows MSI installer (PowerShell)
-        run: |
-          python ..\cura_inst\packaging\msi\create_windows_msi.py ..\cura_inst .\Fracktory "${{ inputs.installer_name }}.msi" "${{ inputs.app_name }}"
-        working-directory: dist
+      # - name: Install NSIS (For EXE Installer)
+      #   run: |
+      #     choco install nsis -y
+      #     echo "C:\Program Files (x86)\NSIS" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
 
-      - name: Create the Windows EXE installer (PowerShell)
+      # - name: Verify WiX & NSIS
+      #   run: |
+      #     heat -help
+      #     makensis /VERSION
+
+      - name: Build MSI Installer
         run: |
-          python ..\cura_inst\packaging\NSIS\create_windows_installer.py ../cura_inst . "${{ inputs.installer_name }}.exe"
-        working-directory: dist
+          python cura_inst\packaging\msi\create_windows_msi.py cura_inst dist\Fracktory "Fracktory.msi" "Fracktory"
+        working-directory: ${{ github.workspace }}
+
+      # - name: Build EXE Installer
+      #   run: |
+      #     python cura_inst\packaging\NSIS\create_windows_installer.py cura_inst dist "Fracktory.exe"
+      #   working-directory: ${{ github.workspace }}
+
 
       - name: Upload the MSI
         uses: actions/upload-artifact@v4
@@ -224,12 +235,12 @@ jobs:
           path: dist/${{ inputs.installer_name }}.msi
           retention-days: 5
 
-      - name: Upload the EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.installer_name }}-exe
-          path: dist/${{ inputs.installer_name }}.exe
-          retention-days: 5
+      # - name: Upload the EXE
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ inputs.installer_name }}-exe
+      #     path: dist/${{ inputs.installer_name }}.exe
+      #     retention-days: 5
 
       - name: Write the run info
         shell: python
