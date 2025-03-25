@@ -135,16 +135,10 @@ jobs:
         run: |
           git clone https://github.com/FracktalWorks/CuraEngine.git
           cd CuraEngine
+          git pull
           conan remove --locks
           conan create . curaengine/5.9.1@FracktalWorks/stable --build=missing --update
 
-      - name: Clone and setup Fracktory-5
-        run: |
-          git clone https://github.com/FracktalWorks/Fracktory-5.git
-          cd Fracktory-5
-          conan install . --build=missing --update --require-override=curaengine/5.9.1@FracktalWorks/stable -o cura:devtools=True -g VirtualPythonEnv
-
-      
       
 
 
