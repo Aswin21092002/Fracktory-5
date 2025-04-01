@@ -20,9 +20,18 @@
     {
         "machine_depth": { "default_value": 200 },
         "machine_height": { "default_value": 200 },
+        "machine_max_feedrate_x": { "value": 350 },
+        "machine_max_feedrate_y": { "value": 350 },
         "machine_name": { "default_value": "Snowflake" },
         "machine_width": { "default_value": 200 },
-        "machine_max_feedrate_x": { "value": 150 },
-        "machine_max_feedrate_y": { "value": 150 }
+        "speed_print": { "value": "150" },
+        "speed_roofing": { "value": "speed_wall" },
+        "speed_travel":
+        {
+            "maximum_value": "300",
+            "maximum_value_warning": "300",
+            "value": "max(200,speed_print)"
+        },
+        "speed_travel_layer_0": { "value": "80" }
     }
 }
