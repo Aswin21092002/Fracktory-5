@@ -100,8 +100,11 @@ jobs:
           cache: pip
           cache-dependency-path: .\.github\workflows\requirements-runner.txt
 
-      - name: Install Python requirements and Create default Conan profile
-        run: pip install -r .\.github\workflows\requirements-runner.txt
+      - name: Install dependencies
+        run: |
+          pip install -r .\.github\workflows\requirements-runner.txt
+        shell: pwsh
+
 
       - name: Echo $Env:WIX 
         run: |
