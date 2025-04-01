@@ -93,9 +93,7 @@ jobs:
       - name: Add PowerShell to PATH
         run: echo "C:\Windows\System32\WindowsPowerShell\v1.0" >> $GITHUB_PATH
 
-      - name: Check PowerShell version
-        run: |
-          powershell -Command "$PSVersionTable"
+      
       
       
 
