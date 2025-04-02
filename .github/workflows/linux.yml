@@ -114,7 +114,16 @@ jobs:
       - name: Create the Packages
         run: |
           conan create . local/test --build=missing --update -c tools.build:skip_test=True
-          conan install cura/${{ inputs.version }}@local/test  ${{ inputs.conan_args }} --require-override=curaengine/${{ inputs.version }}@FracktalWorks/stable --build=missing --update -if cura_inst -g VirtualPythonEnv -o cura:enterprise=False -o cura:staging=False -o cura:internal=False -c tools.build:skip_test=True -s curaengine:build_type=RelWithDebInfo -s arcus:build_type=RelWithDebInfo -s clipper:build_type=RelWithDebInfo
+          conan install cura/${{ inputs.version }}@local/test \
+            ${{ inputs.conan_args }} \
+            --require-override=curaengine/${{ inputs.version }}@FracktalWorks/stable \
+            --build=missing --update -if cura_inst \
+            -g VirtualPythonEnv \
+            -o cura:enterprise=${{ inputs.enterprise }} \
+            -o cura:staging=${{ inputs.staging }} \
+            -o cura:internal=${{ inputs.conan_internal }} \
+            -c tools.system.package_manager:mode=install \
+            -c tools.build:skip_test=True
 
       - name: Create the Cura dist
         run: |
