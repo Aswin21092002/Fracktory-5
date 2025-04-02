@@ -104,7 +104,8 @@ jobs:
           pip install -r .github/workflows/requirements-runner.txt
           pip install conan==1.65.0
 
-
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install ninja-build -y
 
       - name: Setup Conan
         run: |
