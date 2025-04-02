@@ -109,8 +109,6 @@ jobs:
       - name: Setup Conan
         run: |
           conan profile new default --detect --force
-          conan profile update settings.python=/usr/bin/python3.11 default
-          conan profile list  # Verify the profiles
           git clone https://github.com/ultimaker/conan-config.git
           cd conan-config && git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e && cd ..
           conan config install ./conan-config
@@ -124,6 +122,13 @@ jobs:
           git pull
           conan remove --locks
           conan create . curaengine/${{ inputs.version }}@FracktalWorks/stable --build=missing --update
+
+
+      - name: Setup Conan Version
+        run: |
+          conan profile new default --detect --force
+          conan profile update settings.python=/usr/bin/python3.11 default
+          conan profile list  # Verify the profiles
 
       - name: Create the Packages
         run: |
