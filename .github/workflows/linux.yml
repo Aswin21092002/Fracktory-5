@@ -124,11 +124,17 @@ jobs:
           conan create . curaengine/${{ inputs.version }}@FracktalWorks/stable --build=missing --update
 
 
-      - name: Setup Conan Version
+      - name: Setup Environment for Conan
         run: |
-          conan profile new default --detect --force
-          conan profile update settings.python=/usr/bin/python3.11 default
-          conan profile list  # Verify the profiles
+          export PATH="/usr/bin/python3.11:$PATH"
+          conan profile detect --force
+          conan profile update settings.compiler.libcxx=libstdc++11 default
+
+      - name: Set Conan Package Manager Mode
+        run: |
+          conan config set tools.system.package_manager:mode=install
+
+
 
       - name: Create the Packages
         run: |
