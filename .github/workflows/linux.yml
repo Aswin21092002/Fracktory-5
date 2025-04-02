@@ -132,13 +132,12 @@ jobs:
 
       - name: Set Conan Package Manager Mode
         run: |
+          # Remove duplicate setting if it already exists
+          sed -i '/tools.system.package_manager:mode/d' ~/.conan/conan.conf || true
           conan config set tools.system.package_manager:mode=install
-
-
-
+      
       - name: Create the Packages
         run: |
-          conan config set tools.system.package_manager:mode=install
           conan create . local/test --build=missing --update -c tools.build:skip_test=True
           conan install cura/${{ inputs.version }}@local/test \
             ${{ inputs.conan_args }} \
@@ -148,7 +147,6 @@ jobs:
             -o cura:enterprise=${{ inputs.enterprise }} \
             -o cura:staging=${{ inputs.staging }} \
             -o cura:internal=${{ inputs.conan_internal }} \
-            -c tools.system.package_manager:mode=install \
             -c tools.build:skip_test=True
 
 
