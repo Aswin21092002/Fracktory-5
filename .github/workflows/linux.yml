@@ -1,53 +1,144 @@
-name: Linux Installer
-run-name: ${{ inputs.cura_conan_version }} by @${{ github.actor }}
+name: Fracktory Linux Installer
+run-name: ${{ inputs.version }} for Linux-${{ inputs.architecture }} by @${{ github.actor }}
 
 on:
   workflow_dispatch:
     inputs:
-      cura_conan_version:
-        description: 'Cura Conan Version'
-        default: 'cura/latest@ultimaker/testing'
+      version:
+        description: 'Version of the application'
+        default: '5.9.1'
         required: true
         type: string
+      
+      installer_name:
+        description: 'Name of the package'
+        default: 'Fracktory_setup'
+        required: false
+        type: string
+      
+      app_name:
+        description: 'Name of the Application in the installer'
+        default: 'Fracktory'
+        required: false
+        type: string
+      
       conan_args:
-        description: 'Conan args: eq.: --require-override'
+        description: 'Conan additional arguments'
         default: ''
         required: false
         type: string
+      
       enterprise:
         description: 'Build Cura as an Enterprise edition'
         default: false
         required: true
         type: boolean
+      
       staging:
         description: 'Use staging API'
         default: false
         required: true
         type: boolean
+      
       architecture:
         description: 'Architecture'
         required: true
-        default: 'X64'
-        type: choice
-        options:
-          - X64
+        default: 'x86_64'
+        type: string
+      
       operating_system:
         description: 'OS'
         required: true
-        default: 'self-hosted-Ubuntu22-X64'
-        type: choice
-        options:
-          - ubuntu-22.04
-          - self-hosted-Ubuntu22-X64
+        default: 'ubuntu-latest'
+        type: string
+      
+      conan_internal:
+        required: false
+        default: false
+        type: boolean
+
+env:
+  # CONAN_LOGIN_USERNAME: ${{ secrets.CONAN_USER }}
+  # CONAN_PASSWORD: ${{ secrets.CONAN_PASS }}
+  WIN_CERT_INSTALLER_CER: ${{ secrets.WIN_CERT_INSTALLER_CER }}
+  WIN_CERT_INSTALLER_CER_PASS: ${{ secrets.WIN_CERT_INSTALLER_CER_PASS }}
+  CURA_CONAN_VERSION: cura/latest@ultimaker/testing
+  ENTERPRISE: false
+  STAGING: false
+
+permissions:
+  contents: read
 
 jobs:
-  linux-installer:
-    uses: ultimaker/cura-workflows/.github/workflows/cura-installer-linux.yml@CURA-12400_legal_fix
-    with:
-      cura_conan_version: ${{ inputs.cura_conan_version }}
-      conan_args: ${{ inputs.conan_args }}
-      enterprise: ${{ inputs.enterprise }}
-      staging: ${{ inputs.staging }}
-      architecture: ${{ inputs.architecture }}
-      operating_system: ${{ inputs.operating_system }}
-    secrets: inherit
+  cura-installer-create_locally:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: .github/workflows/requirements-runner.txt
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -r .github/workflows/requirements-runner.txt
+          pip install conan==1.65.0
+
+      - name: Setup Conan
+        run: |
+          conan profile new default --detect --force
+          git clone https://github.com/ultimaker/conan-config.git
+          cd conan-config && git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e && cd ..
+          conan config install ./conan-config
+          conan remote remove cura-private
+
+      - name: Clone and setup CuraEngine
+        run: |
+          git clone https://github.com/FracktalWorks/CuraEngine.git
+          cd CuraEngine
+          git pull
+          conan remove --locks
+          conan create . curaengine/${{ inputs.version }}@FracktalWorks/stable --build=missing --update
+
+      - name: Create the Packages
+        run: |
+          conan create . local/test --build=missing --update -c tools.build:skip_test=True
+          conan install cura/${{ inputs.version }}@local/test \
+            ${{ inputs.conan_args }} \
+            --require-override=curaengine/${{ inputs.version }}@FracktalWorks/stable \
+            --build=missing --update -if cura_inst \
+            -g VirtualPythonEnv \
+            -o cura:enterprise=${{ inputs.enterprise }} \
+            -o cura:staging=${{ inputs.staging }} \
+            -o cura:internal=${{ inputs.conan_internal }} \
+            -c tools.build:skip_test=True
+
+      - name: Create the Cura dist
+        run: |
+          source cura_inst/bin/activate
+          pyinstaller --onefile --name=${{ inputs.installer_name }} cura_inst/Fracktory.spec
+
+      - name: Upload the Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fracktory-Linux-Installer
+          path: dist/${{ inputs.installer_name }}
+          retention-days: 5
+
+      - name: Upload Entire Build Directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fracktory-Build-Files
+          path: cura_inst/
+          retention-days: 5
