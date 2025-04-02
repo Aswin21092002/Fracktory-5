@@ -104,15 +104,13 @@ jobs:
           pip install -r .github/workflows/requirements-runner.txt
           pip install conan==1.65.0
 
-      - name: Force Conan to Use Python 3.11
-        run: |
-          conan profile update settings.python=/usr/bin/python3.11 default
-
 
 
       - name: Setup Conan
         run: |
           conan profile new default --detect --force
+          conan profile update settings.python=/usr/bin/python3.11 default
+          conan profile list  # Verify the profiles
           git clone https://github.com/ultimaker/conan-config.git
           cd conan-config && git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e && cd ..
           conan config install ./conan-config
