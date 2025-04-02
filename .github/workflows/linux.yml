@@ -90,10 +90,19 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y cmake ninja-build \
+            libx11-dev libx11-xcb-dev libfontenc-dev libice-dev libsm-dev libxau-dev libxaw7-dev \
+            libxcomposite-dev libxcursor-dev libxdamage-dev libxdmcp-dev libxext-dev libxfixes-dev \
+            libxi-dev libxinerama-dev libxkbfile-dev libxmu-dev libxmuu-dev libxpm-dev libxrandr-dev \
+            libxrender-dev libxres-dev libxss-dev libxt-dev libxtst-dev libxv-dev libxxf86vm-dev \
+            libxcb-glx0-dev libxcb-render0-dev libxcb-render-util0-dev libxcb-xkb-dev libxcb-icccm4-dev \
+            libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-sync-dev \
+            libxcb-xfixes0-dev libxcb-xinerama0-dev libxcb-dri3-dev uuid-dev libxcb-cursor-dev \
+            libxcb-dri2-0-dev libxcb-present-dev libxcb-composite0-dev libxcb-ewmh-dev libxcb-res0-dev
           python -m pip install --upgrade pip setuptools wheel
           pip install -r .github/workflows/requirements-runner.txt
           pip install conan==1.65.0
+
 
       - name: Setup Conan
         run: |
@@ -113,6 +122,7 @@ jobs:
 
       - name: Create the Packages
         run: |
+          conan config set tools.system.package_manager:mode=install
           conan create . local/test --build=missing --update -c tools.build:skip_test=True
           conan install cura/${{ inputs.version }}@local/test \
             ${{ inputs.conan_args }} \
@@ -124,6 +134,7 @@ jobs:
             -o cura:internal=${{ inputs.conan_internal }} \
             -c tools.system.package_manager:mode=install \
             -c tools.build:skip_test=True
+
 
       - name: Create the Cura dist
         run: |
