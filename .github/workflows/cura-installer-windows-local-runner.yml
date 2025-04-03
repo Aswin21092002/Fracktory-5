@@ -89,6 +89,10 @@ jobs:
           ref: ${{ github.base_ref }}
   
 
+      # Add PowerShell to PATH
+      - name: Add PowerShell to PATH
+        run: echo "C:\Windows\System32\WindowsPowerShell\v1.0" >> $GITHUB_PATH
+
       
       
       
@@ -102,6 +106,7 @@ jobs:
 
       - name: Install Python requirements and Create default Conan profile
         run: pip install -r .\.github\workflows\requirements-runner.txt
+
 
       - name: Echo $Env:WIX 
         run: |
