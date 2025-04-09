@@ -174,23 +174,32 @@ remove older packages with
 1. In case you are using custom Cura Engine (Refer https://github.com/Ultimaker/CuraEngine/issues/2195 to fix conan error):
    - Install Cura Engine with the following steps:
       ```sh
-      conan config install https://github.com/FracktalWorks/conan-config.git
-      conan profile new default --detect --force
-      git clone https://github.com/FracktalWorks/CuraEngine.git
-      cd CuraEngine
-      conan create . curaengine/5.9.1@FracktalWorks/stable --build=missing --update
+         git clone https://github.com/ultimaker/conan-config.git
+         cd conan-config
+         git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
+         cd ..
+         conan config install ./conan-config
+         conan remote remove cura-private
+         git clone https://github.com/FracktalWorks/CuraEngine.git
+         conan remove --locks
+         cd CuraEngine
+         conan create . curaengine/5.9.1@FracktalWorks/stable --build=missing --update
       ```
 
 2. Install Fracktory ("Refer https://github.com/Ultimaker/CuraEngine/issues/2195 to fix conan error):
-   ```
-   conan config install https://github.com/FracktalWorks/conan-config.git
-   conan profile detect --force
-   https://github.com/FracktalWorks/Fracktory-5.git
-   cd Fracktory-5
-   # If using custom Curaengine:
-   conan install . --build=missing --update --require-override=curaengine/5.9.1@FracktalWorks/stable -o cura:devtools=True -g VirtualPythonEnv
-   # If using Curaengine from Ultimaker source:
-   conan install . --build=missing --update -o cura:devtools=True -g VirtualPythonEnv
+   ```sh
+      git clone https://github.com/ultimaker/conan-config.git
+      cd conan-config
+      git checkout 3226488623c642b40ca7ce3f62d3f33de046d11e
+      cd ..
+      conan config install ./conan-config
+      conan remote remove cura-private
+      git clone https://github.com/FracktalWorks/Fracktory-5.git
+      cd Fracktory-5
+      # If using custom Curaengine:
+      conan install . --build=missing --update --require-override=curaengine/5.9.1@FracktalWorks/stable -o cura:devtools=True -g VirtualPythonEnv
+      # If using Curaengine from Ultimaker source:
+      conan install . --build=missing --update -o cura:devtools=True -g VirtualPythonEnv
    ```
 ## Activate and run
 
@@ -338,3 +347,32 @@ There may be issues with running newer build environment, Here are settings that
 7. conan 1.60.2
 
 Make sure single instange of VKPG via VS code is only installed.
+
+
+## Prerequisites for Local Runner
+
+To run the local runner for building the Fracktory installer, ensure the following prerequisites are met:
+
+### 1. **Operating System**
+- Windows 10 or higher
+
+### 2. **Required Tools**
+- **Python**: Version 3.12 or higher
+  - Ensure Python is added to the system PATH.
+  - Upgrade `pip` to the latest version:
+    ```sh
+    python -m pip install --upgrade pip
+    ```
+- **Conan**: Version 1.65.0
+  ```sh
+  pip install conan==1.65.0
+  ```
+- **CMake**: Version 3.23 or higher
+  - Download from [CMake.org](https://cmake.org/download/).
+  - Add CMake to the system PATH.
+- **WiX Toolset**: Version 3.14
+  - Download and install from [WiX Toolset](https://wixtoolset.org/releases/).
+  - Add the WiX `bin` folder to the system PATH.
+- **NSIS (Nullsoft Scriptable Install System)**: Latest version
+  - Download and install from [NSIS](https://nsis.sourceforge.io/Download).
+  - Add the NSIS installation folder to the system PATH.
