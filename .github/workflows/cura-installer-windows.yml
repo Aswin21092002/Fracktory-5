@@ -118,7 +118,6 @@ jobs:
 
       - name: Echo $Env:WIX 
         run: |
-          echo $Env:WIX
           cmake --version
           python --version
           conan --version
