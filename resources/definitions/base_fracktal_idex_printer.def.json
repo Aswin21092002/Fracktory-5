@@ -43,7 +43,7 @@
         "prime_tower_position_x": { "value": "prime_tower_size + 100" },
         "prime_tower_position_y": { "value": "20" },
         "retraction_hop_after_extruder_switch": { "value": false },
-        "speed_print": { "value": "100" },
+        "speed_print": { "value": "120" },
         "speed_roofing": { "value": "speed_wall" },
         "speed_travel":
         {

@@ -19,7 +19,7 @@
             0,
             0
         ],
-        "post_processing_scripts": "[CreateThumbnail]\\n\\n",
+        "post_processing_scripts": "[CreateThumbnail]\\\nwidth = 128\\\nheight = 128\\\n\\\n[DiagonalZHop]\\\nextruder_nb = 1\\\n\\\n",
         "preferred_material": "fracktal_plapluss_175",
         "preferred_quality_type": "normal",
         "preferred_variant_name": "Model 0.4 mm",
@@ -72,6 +72,8 @@
             "value": "min([material_final_print_temperature, material_initial_print_temperature, material_print_temperature - 15])"
         },
         "default_material_print_temperature": { "maximum_value": "500" },
+        "gradual_flow_discretisation_step_size": { "value": 0.2 },
+        "gradual_flow_enabled": { "value": true },
         "gradual_support_infill_step_height": { "value": "4 * layer_height" },
         "gradual_support_infill_steps": { "value": "2 if support_interface_enable and support_structure != 'tree' else 0" },
         "group_outer_walls": { "value": false },
@@ -129,6 +131,7 @@
             "maximum_value": "500",
             "value": "175"
         },
+        "max_flow_acceleration": { "value": "0.5 if machine_nozzle_size <= 0.25 else 1.0 if machine_nozzle_size <= 0.4 else 1.5 if machine_nozzle_size <= 0.6 else 2.0" },
         "meshfix_maximum_deviation": { "value": "0.02" },
         "meshfix_maximum_resolution": { "value": "0.5" },
         "meshfix_union_all": { "value": false },
@@ -164,7 +167,7 @@
         "retraction_hop": { "value": "layer_height" },
         "retraction_hop_enabled": { "value": true },
         "retraction_hop_only_when_collides": { "value": true },
-        "retraction_min_travel": { "value": "machine_nozzle_size * 3" },
+        "retraction_min_travel": { "value": "machine_nozzle_size * 5" },
         "retraction_prime_speed": { "value": "retraction_speed * 0.4" },
         "retraction_speed": { "value": "60" },
         "roofing_layer_count": { "value": "1" },
@@ -208,6 +211,7 @@
         "support_pattern": { "value": "'zigzag'" },
         "support_skip_some_zags": { "value": "True if support_pattern== 'zigzag' else False" },
         "support_skip_zag_per_mm": { "value": 10 },
+        "support_structure": { "value": "'tree'" },
         "support_tower_diameter": { "value": "5" },
         "support_tower_maximum_supported_diameter": { "value": "support_tower_diameter" },
         "support_tower_roof_angle": { "value": "0 if support_interface_enable else 65" },
@@ -218,7 +222,7 @@
         "support_wall_count": { "value": "1 if support_structure == 'tree' else 0" },
         "support_xy_distance": { "value": "machine_nozzle_size * 2" },
         "support_xy_distance_overhang": { "value": "machine_nozzle_size" },
-        "support_z_distance": { "value": "min(0.2, layer_height) if support_structure != 'tree' else layer_height" },
+        "support_z_distance": { "value": "min(0.2, layer_height)" },
         "support_zag_skip_count": { "minimum_value": 0 },
         "top_bottom_thickness": { "value": "4 * layer_height if 4 * layer_height > 0.8 else 0.8" },
         "wall_0_wipe_dist": { "value": "2 * line_width" },
@@ -244,76 +248,6 @@
                     "settable_per_mesh": true,
                     "settable_per_meshgroup": false,
                     "type": "bool"
-                }
-            }
-        },
-        "material":
-        {
-            "children":
-            {
-                "max_speed_material_temp":
-                {
-                    "default_value": 210,
-                    "description": "The temperature used for printing.",
-                    "enabled": "machine_nozzle_temp_enabled",
-                    "label": "Printing Temperature for high speed printing",
-                    "maximum_value": "500",
-                    "maximum_value_warning": "300",
-                    "minimum_value": "-273.15",
-                    "minimum_value_warning": "0",
-                    "settable_per_extruder": true,
-                    "settable_per_mesh": false,
-                    "type": "float",
-                    "unit": "\u00b0C",
-                    "value": "default_material_print_temperature"
-                }
-            }
-        },
-        "speed":
-        {
-            "children":
-            {
-                "default_print_speed":
-                {
-                    "default_value": 60,
-                    "description": "The speed at which printing happens.",
-                    "label": "Default Print Speed for Material",
-                    "maximum_value": "math.sqrt(machine_max_feedrate_x ** 2 + machine_max_feedrate_y ** 2)",
-                    "maximum_value_warning": "150",
-                    "minimum_value": "0.1",
-                    "settable_per_mesh": true,
-                    "type": "float",
-                    "unit": "mm/s"
-                },
-                "max_print_speed":
-                {
-                    "default_value": 60,
-                    "description": "The speed at which printing happens.",
-                    "label": "Maximum Material Print Speed",
-                    "maximum_value": "math.sqrt(machine_max_feedrate_x ** 2 + machine_max_feedrate_y ** 2)",
-                    "maximum_value_warning": "200",
-                    "minimum_value": "0.1",
-                    "settable_per_mesh": true,
-                    "type": "float",
-                    "unit": "mm/s"
-                }
-            }
-        },
-        "support":
-        {
-            "children":
-            {
-                "strengthen_tree_support":
-                {
-                    "default_value": false,
-                    "description": "Increase strength of tree support because it breaks easily.",
-                    "enabled": "support_enable and support_structure == 'tree'",
-                    "label": "Strengthen Tree Support",
-                    "limit_to_extruder": "support_infill_extruder_nr",
-                    "settable_per_extruder": true,
-                    "settable_per_mesh": false,
-                    "type": "bool",
-                    "value": false
                 }
             }
         }
